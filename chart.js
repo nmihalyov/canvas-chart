@@ -7,7 +7,8 @@ const DPI_SIZES = {
   WIDTH: SIZES.WIDTH * 2,
   HEIGHT: SIZES.HEIGHT * 2
 };
-const GRID_LINES = 5;
+const GRID_LINES_AMOUNT = 5;
+const TICKS_AMOUNT = 6;
 const PADDING = 40;
 const VIEW = {
   WIDTH: DPI_SIZES.WIDTH,
@@ -15,7 +16,7 @@ const VIEW = {
 };
 const THEME = {
   GRID_LINES: {
-    WIDTH: 2,
+    WIDTH: 1,
     COLOR: '#CCCCCC'
   },
   TICKS: {
@@ -31,12 +32,16 @@ const getData = async url => {
   return await res.json();
 };
 
+// Get formatted date
+const getDate = date => new Intl.DateTimeFormat('en-US', {day: 'numeric', month: 'short'}).format(date);
+
 // Get min and max values
 const getMinMax = ({ columns, types }) => {
   let min;
   let max;
 
   columns.map(col => {
+    // Get values only from lines
     if (types[col[0]] === 'line') {
       if (typeof min !== 'number') min = col[1];
       if (typeof max !== 'number') max = col[1];
@@ -58,10 +63,9 @@ const getMinMax = ({ columns, types }) => {
 };
 
 // Draw Y axis lines
-const drawGrid = (ctx, data) => {
-  const { MIN, MAX } = getMinMax(data);
-  const STEP = VIEW.HEIGHT / GRID_LINES; // step between grid lines 
-  const LABEL_STEP = (MAX - MIN) / GRID_LINES; // step between labels values
+const drawGrid = (ctx, { MIN, MAX }) => {
+  const STEP = VIEW.HEIGHT / GRID_LINES_AMOUNT; // step between grid lines 
+  const LABEL_STEP = (MAX - MIN) / GRID_LINES_AMOUNT; // step between labels values
 
   ctx.beginPath();
   ctx.font = THEME.TICKS.FONT;
@@ -69,21 +73,35 @@ const drawGrid = (ctx, data) => {
   ctx.lineWidth = THEME.GRID_LINES.WIDTH;
   ctx.strokeStyle = THEME.GRID_LINES.COLOR;
 
-  for (let i = 1; i <= GRID_LINES; i++) {
-    const Y = STEP * i;
-    const Y_CHART = Y + PADDING; // y coordinate for grid line
+  for (let i = 1; i <= GRID_LINES_AMOUNT; i++) {
+    const Y = STEP * i + PADDING; // y coordinate for grid line
     const LABEL = Math.round(MAX - LABEL_STEP * i); // label text
 
     // Display grid labels
-    ctx.fillText(LABEL, 5, Y_CHART - 10);
-    // Draw frid line
-    ctx.moveTo(0, Y_CHART);
-    ctx.lineTo(DPI_SIZES.WIDTH, Y_CHART);
+    ctx.fillText(LABEL, 5, Y - 10);
+    // Draw grid line
+    ctx.moveTo(0, Y);
+    ctx.lineTo(DPI_SIZES.WIDTH, Y);
   }
 
   ctx.stroke();
   ctx.closePath();
 }
+
+// Draw ticks labels for X axis
+const drawXTicks = (ctx, data, RATIO_X) => {
+  const STEP = Math.round(data.length / TICKS_AMOUNT); // step between ticks
+
+  ctx.beginPath();
+  
+  for (let i = 1; i < data.length; i += STEP) {
+    const LABEL = getDate(new Date(data[i]));
+  
+    ctx.fillText(LABEL, i * RATIO_X, DPI_SIZES.HEIGHT - 10);
+  }
+
+  ctx.closePath();
+};
 
 // Draw chart line
 const drawChartLine = (ctx, coords, {color}) => {
@@ -99,12 +117,20 @@ const drawChartLine = (ctx, coords, {color}) => {
   ctx.closePath();
 };
 
+// Get coordinates from data for drawing lines
+const getCoordinates = (RATIO_X, RATIO_Y) => col => col.map((y, i) => [
+  Math.round((i - 1) * RATIO_X),
+  Math.round(DPI_SIZES.HEIGHT - y * RATIO_Y - PADDING)
+]).filter((_, i) => i !== 0);
+
 // Initialize canvas chart
 const chart = (canvas, data) => {
   const ctx = canvas.getContext('2d');
   const { MIN, MAX } = getMinMax(data);
   const RATIO_Y = VIEW.HEIGHT / (MAX - MIN); // chart scale ratio by y axis
   const RATIO_X = VIEW.WIDTH / (data.columns[0].length - 2); // chart scale ratio by x axis
+  const LINES_DATA = data.columns.filter(col => data.types[col[0]] === 'line'); // data to draw chart lines
+  const X_DATA = data.columns.filter(col => data.types[col[0]] === 'x')[0]; // data to draw x ticks
   
   // Set canvas element size
   canvas.style.width = SIZES.WIDTH + 'px';
@@ -114,25 +140,18 @@ const chart = (canvas, data) => {
   canvas.width = DPI_SIZES.WIDTH;
   canvas.height = DPI_SIZES.HEIGHT;
 
-  drawGrid(ctx, data);
+  drawGrid(ctx, {MIN, MAX});
+  drawXTicks(ctx, X_DATA.filter((_, i) => i !== 0), RATIO_X);
 
-  data.columns.map(col => {
-    const name = col[0]; // column name
-    // Draw only lines
-    if (data.types[name] === 'line') {
-      // Point coodinates
-      const coords = col.map((y, i) => [
-        Math.round((i - 1) * RATIO_X),
-        Math.round(DPI_SIZES.HEIGHT - y * RATIO_Y - PADDING)
-      ]).filter((_, i) => i !== 0);
-
-      drawChartLine(ctx, coords, {
-        color: data.colors[name]
-      });
-    }
+	// Draw chart lines by coordinates
+  LINES_DATA.map(getCoordinates(RATIO_X, RATIO_Y)).map((coords, i) => {
+    drawChartLine(ctx, coords, {
+      color: data.colors[LINES_DATA[i][0]]
+    });
   });
 };
 
+// Execute drawing chart
 getData('data.json').then(data => {
   chart(document.querySelector('#chart'), data);
 });
