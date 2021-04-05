@@ -6,7 +6,7 @@ const getData = async url => {
 
 // Execute drawing chart using data
 getData('data.json').then(data => {
-  const chartElement = chart(document.querySelector('#chart'), data);
+  const chartElement = chart(document.querySelector('[data-chart]'), data);
 
 	chartElement.init();
 });

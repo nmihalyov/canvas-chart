@@ -24,7 +24,7 @@ const THEME = {
 		COLOR: '#DDDDDD'	
 	},
   TICKS: {
-    FONT: 'normal 20px Helvetica, sans-serif',
+    FONT: 'normal 20px Roboto, Helvetica, sans-serif',
     FILL: '#96A2AA'
   },
   LINE_WIDTH: 4,

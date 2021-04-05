@@ -16,20 +16,26 @@ const chart = (canvas, data) => {
 			return Reflect.set(...args);
 		}
 	}); // proxying changes over mouse object
+	const tip = tooltip(document.querySelector('[data-tooltip]')); // get tooltip functionality
 
 	// Draw position over chart elements
-	const mouseMoveHandler = ({ clientX }) => {
-		const { left } = canvas.getBoundingClientRect(); // canvas position relatively to the window
+	const mouseMoveHandler = ({ clientX, clientY }) => {
+		const { left, top } = canvas.getBoundingClientRect(); // canvas position relatively to the window
 
-		// Set mouse X position relatively to canvas
+		// Set mouse X and tooltip position relatively to canvas
 		proxy.mouse = {
-			x: (clientX - left) * 2
+			x: (clientX - left) * 2,
+			tooltip: {
+				left: clientX - left,
+				top: clientY - top
+			}
 		};
 	};
 
-	// Remove position over chart elements (remove mouse X position)
+	// Remove position over chart elements (remove mouse X position) and tooltip
 	const mouseLeaveHandler = () => {
 		proxy.mouse = null;
+		tip.hide();
 	};
 
 	// Draw Y axis lines
@@ -58,32 +64,42 @@ const chart = (canvas, data) => {
 		ctx.closePath();
 	};
 
-	// Draw elements for X axis (labels and position line)
-	const drawXElements = (data) => {
-		const STEP = Math.round(data.length / TICKS_AMOUNT); // step between labels
+	// Draw elements for X axis (labels and position line) and display tooltip
+	const drawXElements = dataFiltered => {
+		const STEP = Math.round(dataFiltered.length / TICKS_AMOUNT); // step between labels
 
 		ctx.beginPath();
 		ctx.lineWidth = THEME.POINT_LINE.WIDTH;
 		ctx.strokeStyle = THEME.POINT_LINE.COLOR;
 		
-		for (let i = 1; i < data.length; i++) {
+		for (let i = 1; i < dataFiltered.length + 1; i++) {
 			const X = i * RATIO_X; // scaled X axis coordinate
 
 			// Draw labels
 			if ((i - 1) % STEP === 0) {
-				const LABEL = getDate(new Date(data[i])); // label text
+				const LABEL = getDate(new Date(dataFiltered[i])); // label text
 			
-				ctx.fillText(LABEL, X, DPI_SIZES.HEIGHT - 10);
+				ctx.fillText(LABEL, X - 15, DPI_SIZES.HEIGHT - 10);
 			}
 
 			// Draw position line
-			if (isOver(proxy.mouse, X, data.length)) {
+			if (isOver(proxy.mouse, X, dataFiltered.length)) {
 				// Save context state
 				ctx.save();
 				ctx.moveTo(X, PADDING / 2);
 				ctx.lineTo(X, DPI_SIZES.HEIGHT - PADDING);
 				// Load context state
 				ctx.restore();
+
+				// Show tooltip on current data
+				tip.show(proxy.mouse.tooltip, {
+					title: getDate(X_DATA[i]),
+					items: LINES_DATA.map(col => ({
+						color: data.colors[col[0]],
+						name: data.names[col[0]],
+						value: col[i + 1]
+					}))
+				});
 			}
 		}
 
