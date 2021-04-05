@@ -18,6 +18,8 @@ body {
 
 .chart {
 	position: relative;
+	width: 800px;
+	margin: 0 auto;
 }
 
 .tooltip {
@@ -57,4 +59,53 @@ body {
 .tooltip__value {
 	font-size: 16px;
 	font-weight: 500;
+}
+
+.slider {
+	position: relative;
+}
+
+.slider__left,
+.slider__right {
+	opacity: 0.8;
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	background-color: #f5f9fb;
+	transition: background-color 0.3s ease;
+}
+
+.slider__left {
+	left: 0;
+}
+
+.slider__right {
+	right: 0;
+}
+
+.slider__right-arrow,
+.slider__left-arrow {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	width: 4px;
+	background-color: #ddeaf3;
+	transition: background-color 0.3s ease;
+}
+
+.slider__right-arrow {
+	right: 0;
+	cursor: e-resize;
+}
+
+.slider__left-arrow {
+	left: 0;
+	cursor: w-resize;
+}
+
+.slider__window {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	background-color: transparent;
 }

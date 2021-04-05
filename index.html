@@ -8,15 +8,25 @@
 		<link rel="preconnect" href="https://fonts.gstatic.com">
 		<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
 		<link rel="stylesheet" href="style.css">
-    <script defer src="constants.js"></script>
     <script defer src="utils.js"></script>
     <script defer src="tooltip.js"></script>
+    <script defer src="slider.js"></script>
     <script defer src="chart.js"></script>
     <script defer src="app.js"></script>
   </head>
   <body>
 		<div class="chart">
 			<canvas data-chart></canvas>
+			<div class="slider">
+				<canvas data-slider></canvas>
+				<div class="slider__left">
+					<div class="slider__left-arrow"></div>
+				</div>
+				<div class="slider__window"></div>
+				<div class="slider__right">
+					<div class="slider__right-arrow"></div>
+				</div>
+			</div>
 			<div class="tooltip" data-tooltip></div>
 		</div>
   </body>

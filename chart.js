@@ -2,6 +2,7 @@
 const chart = (canvas, data) => {
 	let requestId;
   const ctx = canvas.getContext('2d');
+	const slider = chartSlider(document.querySelector('[data-slider]'), data);
   const { MIN, MAX } = getMinMax(data);
   const RATIO_Y = VIEW.HEIGHT / (MAX - MIN); // chart scale ratio by y axis
   const RATIO_X = VIEW.WIDTH / (data.columns[0].length - 2); // chart scale ratio by x axis
@@ -140,7 +141,7 @@ const chart = (canvas, data) => {
 		drawXElements(X_DATA.filter((_, i) => i !== 0));
 	
 		// Draw chart lines by coordinates
-		LINES_DATA.map(getCoordinates(RATIO_X, RATIO_Y)).map((coords, i) => {
+		LINES_DATA.map(getCoordinates(RATIO_X, RATIO_Y, DPI_SIZES.HEIGHT, PADDING)).map((coords, i) => {
 			const COLOR = data.colors[LINES_DATA[i][0]]; // current chart line and point color
 
 			drawChartLine(coords, {
