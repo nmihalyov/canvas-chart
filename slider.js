@@ -5,6 +5,11 @@ const chartSlider = (canvas, data) => {
 	const LINES_DATA = data.columns.filter(col => data.types[col[0]] === 'line'); // data to draw chart lines
 	const RATIO_Y = SLIDER.DPI_HEIGHT / (MAX - MIN); // chart scale ratio by y axis
 	const RATIO_X = DPI_SIZES.WIDTH / (data.columns[0].length - 2); // chart scale ratio by x axis
+	const defaultWidth = SIZES.WIDTH * 0.3; // default window width
+	const leftSpace = document.querySelector('[data-left]') // slider left space
+	const rightSpace = document.querySelector('[data-right]') // slider right space
+	const sliderWindow = document.querySelector('[data-el="window"]') // slider window
+	const minWidth = DPI_SIZES.WIDTH * 0.05; // minimum slider window width
 
 	// Draw chart line
 	const drawChartLine = (coords, {color}) => {
@@ -18,6 +23,82 @@ const chartSlider = (canvas, data) => {
 
 		ctx.stroke();
 		ctx.closePath();
+	};
+
+	// Set positioning for slider window
+	const setPosition = ({ left, right }) => {
+		const width = SIZES.WIDTH - right - left; // window width
+
+		// Set min width for window
+		if (width < minWidth) {
+			sliderWindow.style.width = minWidth + 'px';
+			return;
+		}
+
+		// Set left limit for window
+		if (left < 0) {
+			sliderWindow.style.left = 0;
+			leftSpace.style.width = 0;
+			return;
+		}
+		
+		// Set right limit for window
+		if (right < 0) {
+			sliderWindow.style.right = 0;
+			rightSpace.style.width = 0;
+			return;
+		}
+
+		// Set window position and width
+		sliderWindow.style.cssText = `
+			width: ${width}px;
+			left: ${left}px;
+			right: ${right}px;`;
+
+		// Set left and right space off the window width
+		leftSpace.style.width = left + 'px';
+		rightSpace.style.width = right + 'px';
+	};
+
+	// Handling mouse down event on slider
+	const mousedownHandler = e => {
+		const type = e.target.dataset.el; // event element type
+		const properties = {
+			left: parseInt(sliderWindow.style.left),
+			right: parseInt(sliderWindow.style.right),
+			width: parseInt(sliderWindow.style.width)
+		}; // current window properties
+
+		switch (type) {
+			case 'window':
+				const startX = e.pageX; // x coordinate from event start
+				document.body.style.cursor = 'grabbing';
+				// Handling mouse move on slider
+				document.onmousemove = e => {
+					const delta = startX - e.pageX; // difference between start and current cursor position
+					if (delta === 0) return; // do nothing if cursor x coordinate was not changed
+					const left = properties.left - delta; // left window position
+					const right = SIZES.WIDTH - left - properties.width; // right window position
+
+					// Set new window position
+					setPosition({left, right});
+				};
+				break;
+			case 'left':
+				
+				break;
+			case 'right':
+				
+				break;
+			default:
+				break;
+		}
+	};
+
+	// Handling mouse up event on slider
+	const mouseupHandler = () => {
+		document.body.style = '';
+		document.onmousemove = null;
 	};
 
 	// Set canvas element size
@@ -36,4 +117,11 @@ const chartSlider = (canvas, data) => {
 			color: COLOR
 		});
 	});
+
+	// Set default position
+	setPosition({left: SIZES.WIDTH - defaultWidth, right: 0});
+
+	// Add handlers to mouse events
+	document.querySelector('.slider').addEventListener('mousedown', mousedownHandler);
+	document.addEventListener('mouseup', mouseupHandler);
 };

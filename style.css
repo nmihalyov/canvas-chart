@@ -94,12 +94,12 @@ body {
 }
 
 .slider__right-arrow {
-	right: 0;
+	left: 0;
 	cursor: e-resize;
 }
 
 .slider__left-arrow {
-	left: 0;
+	right: 0;
 	cursor: w-resize;
 }
 
@@ -107,5 +107,12 @@ body {
 	position: absolute;
 	top: 0;
 	bottom: 0;
+	border-top: 2px solid rgba(237, 244, 249, .8);
+	border-bottom: 2px solid rgba(237, 244, 249, .8);
 	background-color: transparent;
+	cursor: grab;
+}
+
+.slider__window:active {
+	cursor: grabbing;
 }
