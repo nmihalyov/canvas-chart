@@ -9,7 +9,7 @@ const chartSlider = (canvas, data) => {
 	const leftSpace = document.querySelector('[data-left]') // slider left space
 	const rightSpace = document.querySelector('[data-right]') // slider right space
 	const sliderWindow = document.querySelector('[data-el="window"]') // slider window
-	const minWidth = DPI_SIZES.WIDTH * 0.05; // minimum slider window width
+	const minWidth = SIZES.WIDTH * 0.05; // minimum slider window width
 
 	// Draw chart line
 	const drawChartLine = (coords, {color}) => {
@@ -63,35 +63,46 @@ const chartSlider = (canvas, data) => {
 	// Handling mouse down event on slider
 	const mousedownHandler = e => {
 		const type = e.target.dataset.el; // event element type
+		const startX = e.pageX; // x coordinate from event start
 		const properties = {
 			left: parseInt(sliderWindow.style.left),
 			right: parseInt(sliderWindow.style.right),
 			width: parseInt(sliderWindow.style.width)
 		}; // current window properties
 
-		switch (type) {
-			case 'window':
-				const startX = e.pageX; // x coordinate from event start
-				document.body.style.cursor = 'grabbing';
-				// Handling mouse move on slider
-				document.onmousemove = e => {
-					const delta = startX - e.pageX; // difference between start and current cursor position
-					if (delta === 0) return; // do nothing if cursor x coordinate was not changed
-					const left = properties.left - delta; // left window position
-					const right = SIZES.WIDTH - left - properties.width; // right window position
+		// Handling mouse move on slider
+		document.onmousemove = e => {
+			const delta = startX - e.pageX; // difference between start and current cursor position
+			if (delta === 0) return; // do nothing if cursor x coordinate was not changed
+			let left, right; // left and right window position relatively to slider
 
-					// Set new window position
-					setPosition({left, right});
-				};
-				break;
-			case 'left':
-				
-				break;
-			case 'right':
-				
-				break;
-			default:
-				break;
+			// Set left and right position depending on event element type
+			switch (type) {
+				case 'window': {
+					left = properties.left - delta;
+					right = properties.right + delta;
+					document.body.style.cursor = 'grabbing';
+					break;
+				}
+				case 'left':
+				case 'right': {
+					if (type === 'left') {
+						document.body.style.cursor = 'w-resize';
+						left = SIZES.WIDTH - (properties.width + delta) - properties.right;
+						right = properties.right;
+					} else {
+						document.body.style.cursor = 'e-resize';
+						right = SIZES.WIDTH - (properties.width - delta) - properties.left;
+						left = properties.left;
+					}
+					break;
+				}
+				default:
+					break;
+			};
+
+			// Set new window position
+			setPosition({left, right});
 		}
 	};
 
