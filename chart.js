@@ -3,11 +3,7 @@ const chart = (canvas, data) => {
 	let requestId;
   const ctx = canvas.getContext('2d');
 	const slider = chartSlider(document.querySelector('[data-slider]'), data);
-  const { MIN, MAX } = getMinMax(data);
-  const RATIO_Y = VIEW.HEIGHT / (MAX - MIN); // chart scale ratio by y axis
-  const RATIO_X = VIEW.WIDTH / (data.columns[0].length - 2); // chart scale ratio by x axis
-  const LINES_DATA = data.columns.filter(col => data.types[col[0]] === 'line'); // data to draw chart lines
-  const X_DATA = data.columns.filter(col => data.types[col[0]] === 'x')[0]; // data to draw x ticks
+	let ratioY, ratioX; // scale ratio for x, y
 	const proxy = new Proxy({}, {
 		set(...args) {
 			// Redraw whole chart
@@ -40,7 +36,7 @@ const chart = (canvas, data) => {
 	};
 
 	// Draw Y axis lines
-	const drawGrid = () => {
+	const drawGrid = ({ MIN, MAX }) => {
 		const STEP = VIEW.HEIGHT / GRID_LINES_AMOUNT; // step between grid lines 
 		const LABEL_STEP = (MAX - MIN) / GRID_LINES_AMOUNT; // step between labels values
 
@@ -66,25 +62,26 @@ const chart = (canvas, data) => {
 	};
 
 	// Draw elements for X axis (labels and position line) and display tooltip
-	const drawXElements = dataFiltered => {
-		const STEP = Math.round(dataFiltered.length / TICKS_AMOUNT); // step between labels
+	const drawXElements = (X_DATA, LINES_DATA) => {
+		const DATA_FILTERED = X_DATA.filter((_, i) => i !== 0) // filter data off zero-index
+		const STEP = Math.round(DATA_FILTERED.length / TICKS_AMOUNT); // step between labels
 
 		ctx.beginPath();
 		ctx.lineWidth = THEME.POINT_LINE.WIDTH;
 		ctx.strokeStyle = THEME.POINT_LINE.COLOR;
 		
-		for (let i = 1; i < dataFiltered.length + 1; i++) {
-			const X = i * RATIO_X; // scaled X axis coordinate
+		for (let i = 1; i < DATA_FILTERED.length + 1; i++) {
+			const X = i * ratioX; // scaled X axis coordinate
 
 			// Draw labels
-			if ((i - 1) % STEP === 0) {
-				const LABEL = getDate(new Date(dataFiltered[i])); // label text
+			if ((i - 1) % STEP === 0 && DATA_FILTERED[i]) {
+				const LABEL = getDate(new Date(DATA_FILTERED[i])); // label text
 			
 				ctx.fillText(LABEL, X - 15, DPI_SIZES.HEIGHT - 10);
 			}
 
 			// Draw position line
-			if (isOver(proxy.mouse, X, dataFiltered.length)) {
+			if (isOver(proxy.mouse, X, DATA_FILTERED.length)) {
 				// Save context state
 				ctx.save();
 				ctx.moveTo(X, PADDING / 2);
@@ -135,13 +132,30 @@ const chart = (canvas, data) => {
 
 	// Draw whole chart
 	const draw = () => {
+		const dataLength = data.columns[0].length;
+		const leftIndex = Math.round(dataLength * proxy.pos.start / 100); // start element index
+		const rightIndex = Math.round(dataLength * proxy.pos.end / 100); // end element index
+		const columns = data.columns.map(col => {
+			const res = col.slice(leftIndex, rightIndex);
+			if (typeof res[0] !== 'string') {
+				res.unshift(col[0]);
+			}
+			return res;
+		}); // get new data based on slider window and setting data type as first element
+		const { MIN, MAX } = getMinMax({columns, types: data.types});
+		const LINES_DATA = columns.filter(col => data.types[col[0]] === 'line'); // data to draw chart lines
+		const X_DATA = columns.filter(col => data.types[col[0]] === 'x')[0]; // data to draw x ticks
+
+		ratioY = (MAX - MIN) / VIEW.HEIGHT; // chart scale ratio by y axis
+		ratioX = VIEW.WIDTH / (columns[0].length - 2); // chart scale ratio by x axis
+
 		erase();
 
-		drawGrid();
-		drawXElements(X_DATA.filter((_, i) => i !== 0));
+		drawGrid({MIN, MAX});
+		drawXElements(X_DATA, LINES_DATA);
 	
 		// Draw chart lines by coordinates
-		LINES_DATA.map(getCoordinates(RATIO_X, RATIO_Y, DPI_SIZES.HEIGHT, PADDING)).map((coords, i) => {
+		LINES_DATA.map(getCoordinates(ratioX, ratioY, DPI_SIZES.HEIGHT, PADDING, MIN)).map((coords, i) => {
 			const COLOR = data.colors[LINES_DATA[i][0]]; // current chart line and point color
 
 			drawChartLine(coords, {
@@ -173,6 +187,12 @@ const chart = (canvas, data) => {
 	// Add handlers to mouse events
 	canvas.addEventListener('mousemove', mouseMoveHandler);
 	canvas.addEventListener('mouseleave', mouseLeaveHandler);
+
+	// Subscribe to slider change
+	slider.subscribe(position => {
+		// Set position value in proxy object
+		proxy.pos = position;
+	});
 
 	return {
 		// Initialize chart method

@@ -3,13 +3,14 @@ const chartSlider = (canvas, data) => {
 	const ctx = canvas.getContext('2d');
 	const { MIN, MAX } = getMinMax(data);
 	const LINES_DATA = data.columns.filter(col => data.types[col[0]] === 'line'); // data to draw chart lines
-	const RATIO_Y = SLIDER.DPI_HEIGHT / (MAX - MIN); // chart scale ratio by y axis
+	const RATIO_Y = (MAX - MIN) / SLIDER.DPI_HEIGHT; // chart scale ratio by y axis
 	const RATIO_X = DPI_SIZES.WIDTH / (data.columns[0].length - 2); // chart scale ratio by x axis
 	const defaultWidth = SIZES.WIDTH * 0.3; // default window width
 	const leftSpace = document.querySelector('[data-left]') // slider left space
 	const rightSpace = document.querySelector('[data-right]') // slider right space
 	const sliderWindow = document.querySelector('[data-el="window"]') // slider window
 	const minWidth = SIZES.WIDTH * 0.05; // minimum slider window width
+	let callbackFn; // callback function
 
 	// Draw chart line
 	const drawChartLine = (coords, {color}) => {
@@ -60,6 +61,18 @@ const chartSlider = (canvas, data) => {
 		rightSpace.style.width = right + 'px';
 	};
 
+	// Get positioning of slider window
+	const getPosition = () => {
+		const left = parseInt(leftSpace.style.width); // left window position
+		const right = SIZES.WIDTH - parseInt(rightSpace.style.width); // right window position
+
+		// Return percentage of window filling
+		return {
+			start: left / SIZES.WIDTH * 100,
+			end: right / SIZES.WIDTH * 100 
+		};
+	};
+
 	// Handling mouse down event on slider
 	const mousedownHandler = e => {
 		const type = e.target.dataset.el; // event element type
@@ -103,6 +116,8 @@ const chartSlider = (canvas, data) => {
 
 			// Set new window position
 			setPosition({left, right});
+			// Executing callback function with current window filling
+			callbackFn(getPosition());
 		}
 	};
 
@@ -121,7 +136,7 @@ const chartSlider = (canvas, data) => {
 	canvas.height = SLIDER.DPI_HEIGHT;
 
 	// Draw chart lines by coordinates
-	LINES_DATA.map(getCoordinates(RATIO_X, RATIO_Y, SLIDER.DPI_HEIGHT, -5)).map((coords, i) => {
+	LINES_DATA.map(getCoordinates(RATIO_X, RATIO_Y, SLIDER.DPI_HEIGHT, 0, MIN)).map((coords, i) => {
 		const COLOR = data.colors[LINES_DATA[i][0]]; // current chart line and point color
 
 		drawChartLine(coords, {
@@ -135,4 +150,14 @@ const chartSlider = (canvas, data) => {
 	// Add handlers to mouse events
 	document.querySelector('.slider').addEventListener('mousedown', mousedownHandler);
 	document.addEventListener('mouseup', mouseupHandler);
+
+	return {
+		// Subscribing to slider changes
+		subscribe(callback) {
+			// Assign callback function to inner variable
+			callbackFn = callback;
+			// Execute callback on subscribe
+			callback(getPosition());
+		}
+	};
 };

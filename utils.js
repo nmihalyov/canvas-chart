@@ -80,7 +80,7 @@ const getMinMax = ({ columns, types }) => {
 };
 
 // Get coordinates from data for drawing lines
-const getCoordinates = (RATIO_X, RATIO_Y, HEIGHT, PADDING) => col => col.map((y, i) => [
+const getCoordinates = (RATIO_X, RATIO_Y, HEIGHT, PADDING, MIN) => col => col.map((y, i) => [
   Math.round((i - 1) * RATIO_X),
-  Math.round(HEIGHT - y * RATIO_Y - PADDING)
+  Math.round(HEIGHT - (y - MIN) / RATIO_Y - PADDING)
 ]).filter((_, i) => i !== 0);
