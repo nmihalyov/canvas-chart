@@ -53,24 +53,22 @@ const isOver = (mouse, x, length) => {
 };
 
 // Get min and max values
-const getMinMax = ({ columns, types }) => {
+const getMinMax = columns => {
   let min;
   let max;
 
   columns.map(col => {
-    // Get values only from lines
-    if (types[col[0]] === 'line') {
-      if (typeof min !== 'number') min = col[1];
-      if (typeof max !== 'number') max = col[1];
+    // Get min and max values
+		if (typeof min !== 'number') min = col[1];
+		if (typeof max !== 'number') max = col[1];
 
-      if (min > col[1]) min = col[1];
-      if (max < col[1]) max = col[1];
-      
-      for (let i = 2; i < col.length; i++) {
-        if (min > col[i]) min = col[i];
-        if (max < col[i]) max = col[i];
-      }
-    }
+		if (min > col[1]) min = col[1];
+		if (max < col[1]) max = col[1];
+		
+		for (let i = 2; i < col.length; i++) {
+			if (min > col[i]) min = col[i];
+			if (max < col[i]) max = col[i];
+		}
   });
 
   return {
@@ -84,3 +82,8 @@ const getCoordinates = (RATIO_X, RATIO_Y, HEIGHT, PADDING, MIN) => col => col.ma
   Math.round((i - 1) * RATIO_X),
   Math.round(HEIGHT - (y - MIN) / RATIO_Y - PADDING)
 ]).filter((_, i) => i !== 0);
+
+// Clear canvas
+const clear = (ctx, height) => {
+	ctx.clearRect(0, 0, DPI_SIZES.WIDTH, height);
+};

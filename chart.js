@@ -3,8 +3,9 @@ const chart = (canvas, data) => {
 	let requestId;
   const ctx = canvas.getContext('2d');
 	const slider = chartSlider(document.querySelector('[data-slider]'), data);
+	const controls = chartControls(data);
 	let ratioY, ratioX; // scale ratio for x, y
-	const proxy = new Proxy({}, {
+	const proxy = new Proxy({controls: controls.initialState}, {
 		set(...args) {
 			// Redraw whole chart
 			requestId = requestAnimationFrame(draw, canvas);
@@ -12,7 +13,7 @@ const chart = (canvas, data) => {
 			// Write values to object and return true if property was changed
 			return Reflect.set(...args);
 		}
-	}); // proxying changes over mouse object
+	}); // proxying changes over mouse, slider position and cotrols objects
 	const tip = tooltip(document.querySelector('[data-tooltip]')); // get tooltip functionality
 
 	// Draw position over chart elements
@@ -142,14 +143,14 @@ const chart = (canvas, data) => {
 			}
 			return res;
 		}); // get new data based on slider window and setting data type as first element
-		const { MIN, MAX } = getMinMax({columns, types: data.types});
-		const LINES_DATA = columns.filter(col => data.types[col[0]] === 'line'); // data to draw chart lines
+		const LINES_DATA = columns.filter(col => data.types[col[0]] === 'line' && proxy.controls[col[0]]); // data to draw chart lines
 		const X_DATA = columns.filter(col => data.types[col[0]] === 'x')[0]; // data to draw x ticks
+		const { MIN, MAX } = getMinMax(LINES_DATA);
 
 		ratioY = (MAX - MIN) / VIEW.HEIGHT; // chart scale ratio by y axis
 		ratioX = VIEW.WIDTH / (columns[0].length - 2); // chart scale ratio by x axis
 
-		erase();
+		clear(ctx, DPI_SIZES.HEIGHT);
 
 		drawGrid({MIN, MAX});
 		drawXElements(X_DATA, LINES_DATA);
@@ -171,11 +172,6 @@ const chart = (canvas, data) => {
 		});
 	};
 
-	// Clear whole canvas
-	const erase = () => {
-		ctx.clearRect(0, 0, DPI_SIZES.WIDTH, DPI_SIZES.HEIGHT);
-	};
-  
   // Set canvas element size
   canvas.style.width = SIZES.WIDTH + 'px';
   canvas.style.height = SIZES.HEIGHT + 'px';
@@ -192,6 +188,18 @@ const chart = (canvas, data) => {
 	slider.subscribe(position => {
 		// Set position value in proxy object
 		proxy.pos = position;
+	});
+
+	// Subscribe to controls change
+	controls.subscribe(name => {
+		// Toggle control state
+		proxy.controls = {
+			...proxy.controls,
+			[name]: !proxy.controls[name]
+		};
+
+		// Redraw chart slider
+		slider.redraw(proxy.controls);
 	});
 
 	return {

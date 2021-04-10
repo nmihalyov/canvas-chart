@@ -1,7 +1,8 @@
+/* Common styles */
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
 }
 
 body {
@@ -22,6 +23,7 @@ body {
 	margin: 0 auto;
 }
 
+/* Tooltip styles */
 .tooltip {
 	z-index: 2;
 	position: absolute;
@@ -36,6 +38,7 @@ body {
 .tooltip__title {
 	margin-bottom: 5px;
 	color: #333;
+	white-space: nowrap;
 	font-size: 14px;
 	font-weight: 600;
 }
@@ -44,8 +47,8 @@ body {
 	display: flex;
 	flex-flow: row nowrap;
 	list-style: none;
-  margin: 0;
-  padding: 0;
+	margin: 0;
+	padding: 0;
 }
 
 .tooltip__list-item:not(:last-child) {
@@ -61,8 +64,10 @@ body {
 	font-weight: 500;
 }
 
+/* Sldier elements styles */
 .slider {
 	position: relative;
+	margin-bottom: 25px;
 }
 
 .slider__left,
@@ -115,4 +120,76 @@ body {
 
 .slider__window:active {
 	cursor: grabbing;
+}
+
+/* Checkboxes styles */
+.checkbox {
+	display: flex;
+	flex-flow: row nowrap;
+	align-items: flex-start;
+	cursor: pointer;
+}
+.checkbox:not(:last-child) {
+	margin-bottom: 10px;
+}
+.checkbox:hover .checkbox__box {
+	border-color: currentColor;
+}
+.checkbox__input {
+	opacity: 0;
+	visibility: hidden;
+	width: 0;
+	height: 0;
+	margin: 0;
+}
+.checkbox__input:checked ~ .checkbox__box {
+	background-color: currentColor;
+	border-color: currentColor;
+}
+.checkbox__input:checked ~ .checkbox__box .checkbox__box-mark:before {
+	height: 7px;
+	transition: all 0.15s ease-in;
+}
+.checkbox__input:checked ~ .checkbox__box .checkbox__box-mark:after {
+	width: 12px;
+	transition: all 0.15s ease-in 0.15s;
+}
+.checkbox__box {
+	flex-shrink: 0;
+	width: 20px;
+	height: 20px;
+	margin-right: 10px;
+	border: 1px solid currentColor;
+	border-radius: 4px;
+	background-color: #fff;
+	transition: all 0.3s ease;
+}
+.checkbox__box-mark {
+	position: relative;
+	top: 4px;
+	left: 3px;
+	width: 12px;
+	height: 7px;
+	transform: rotate(-45deg);
+}
+.checkbox__box-mark:after, .checkbox__box-mark:before {
+	content: "";
+	position: absolute;
+	background-color: #fff;
+}
+.checkbox__box-mark:before {
+	height: 0;
+	width: 2px;
+	transition: all 0.15s ease-out 0.15s;
+}
+.checkbox__box-mark:after {
+	top: 5px;
+	height: 2px;
+	width: 0;
+	transition: all 0.15s ease-out;
+}
+.checkbox__text {
+	padding-top: 2px;
+	font-size: 14px;
+	font-weight: 500;
 }

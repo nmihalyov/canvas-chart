@@ -1,10 +1,6 @@
 // Initialize canvas slider for chart
 const chartSlider = (canvas, data) => {
 	const ctx = canvas.getContext('2d');
-	const { MIN, MAX } = getMinMax(data);
-	const LINES_DATA = data.columns.filter(col => data.types[col[0]] === 'line'); // data to draw chart lines
-	const RATIO_Y = (MAX - MIN) / SLIDER.DPI_HEIGHT; // chart scale ratio by y axis
-	const RATIO_X = DPI_SIZES.WIDTH / (data.columns[0].length - 2); // chart scale ratio by x axis
 	const defaultWidth = SIZES.WIDTH * 0.3; // default window width
 	const leftSpace = document.querySelector('[data-left]') // slider left space
 	const rightSpace = document.querySelector('[data-right]') // slider right space
@@ -111,7 +107,7 @@ const chartSlider = (canvas, data) => {
 					break;
 				}
 				default:
-					break;
+					return;
 			};
 
 			// Set new window position
@@ -127,6 +123,25 @@ const chartSlider = (canvas, data) => {
 		document.onmousemove = null;
 	};
 
+	// Draw chart slider
+	const draw = controls => {
+		const LINES_DATA = data.columns.filter(col => data.types[col[0]] === 'line' && (controls ? controls[col[0]] : true)); // data to draw chart lines
+		const { MIN, MAX } = getMinMax(LINES_DATA);
+		const RATIO_Y = (MAX - MIN) / SLIDER.DPI_HEIGHT; // chart scale ratio by y axis
+		const RATIO_X = DPI_SIZES.WIDTH / (data.columns[0].length - 2); // chart scale ratio by x axis
+
+		clear(ctx, SLIDER.DPI_HEIGHT);
+
+		// Draw chart lines by coordinates
+		LINES_DATA.map(getCoordinates(RATIO_X, RATIO_Y, SLIDER.DPI_HEIGHT, 0, MIN)).map((coords, i) => {
+			const COLOR = data.colors[LINES_DATA[i][0]]; // current chart line and point color
+
+			drawChartLine(coords, {
+				color: COLOR
+			});
+		});
+	};
+
 	// Set canvas element size
 	canvas.style.width = SIZES.WIDTH + 'px';
 	canvas.style.height = SLIDER.HEIGHT + 'px';
@@ -135,14 +150,7 @@ const chartSlider = (canvas, data) => {
 	canvas.width = DPI_SIZES.WIDTH;
 	canvas.height = SLIDER.DPI_HEIGHT;
 
-	// Draw chart lines by coordinates
-	LINES_DATA.map(getCoordinates(RATIO_X, RATIO_Y, SLIDER.DPI_HEIGHT, 0, MIN)).map((coords, i) => {
-		const COLOR = data.colors[LINES_DATA[i][0]]; // current chart line and point color
-
-		drawChartLine(coords, {
-			color: COLOR
-		});
-	});
+	draw();
 
 	// Set default position
 	setPosition({left: SIZES.WIDTH - defaultWidth, right: 0});
@@ -152,6 +160,10 @@ const chartSlider = (canvas, data) => {
 	document.addEventListener('mouseup', mouseupHandler);
 
 	return {
+		// Redraw slider based on new controls state
+		redraw(controls) {
+			draw(controls);
+		},
 		// Subscribing to slider changes
 		subscribe(callback) {
 			// Assign callback function to inner variable
