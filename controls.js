@@ -7,7 +7,7 @@ const chartControls = data => {
 	const checkboxes = data.columns.map(col => {
 		const item = col[0]; // name of chart item
 
-		// Working only with line
+		// Working only with lines
 		if (data.types[item] === 'line') {
 			controls[item] = true; // set initial state as true
 
@@ -23,9 +23,18 @@ const chartControls = data => {
 
 	// Handler checkbox click
 	const checkboxClickHandler = e => {
+		const $target = e.currentTarget; // event target
+
+		// Remove animation class when animation ends
+		$target.addEventListener('animationend', () => {
+			$target.setAttribute('class', 'checkbox');
+		});
+
 		// Prevent all checkboxes of being unchecked
-		if (document.querySelectorAll('[type="checkbox"]:checked').length === 1 && e.currentTarget.querySelector('input').checked) {
+		if (document.querySelectorAll('[type="checkbox"]:checked').length === 1 && $target.querySelector('input').checked) {
 			e.preventDefault();
+			// Add animation class on checkbox
+			$target.classList.add('checkbox--shake');
 			return false;
 		}
 

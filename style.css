@@ -129,12 +129,40 @@ body {
 	align-items: flex-start;
 	cursor: pointer;
 }
+
+.checkbox--shake {
+	animation: headShake 1s ease-in-out forwards;
+}
+
+@keyframes headShake {
+	0% {
+    transform: translateX(0);
+	}
+	6.5% {
+	transform: translateX(-6px) rotateY(-9deg);
+	}
+	18.5% {
+		transform: translateX(5px) rotateY(7deg);
+	}
+	31.5% {
+		transform: translateX(-3px) rotateY(-5deg);
+	}
+	43.5% {
+		transform: translateX(2px) rotateY(3deg);
+	}
+	50% {
+		transform: translateX(0);
+	}
+}
+
 .checkbox:not(:last-child) {
 	margin-bottom: 10px;
 }
+
 .checkbox:hover .checkbox__box {
 	border-color: currentColor;
 }
+
 .checkbox__input {
 	opacity: 0;
 	visibility: hidden;
@@ -142,18 +170,22 @@ body {
 	height: 0;
 	margin: 0;
 }
+
 .checkbox__input:checked ~ .checkbox__box {
 	background-color: currentColor;
 	border-color: currentColor;
 }
+
 .checkbox__input:checked ~ .checkbox__box .checkbox__box-mark:before {
 	height: 7px;
 	transition: all 0.15s ease-in;
 }
+
 .checkbox__input:checked ~ .checkbox__box .checkbox__box-mark:after {
 	width: 12px;
 	transition: all 0.15s ease-in 0.15s;
 }
+
 .checkbox__box {
 	flex-shrink: 0;
 	width: 20px;
@@ -164,6 +196,7 @@ body {
 	background-color: #fff;
 	transition: all 0.3s ease;
 }
+
 .checkbox__box-mark {
 	position: relative;
 	top: 4px;
@@ -172,22 +205,26 @@ body {
 	height: 7px;
 	transform: rotate(-45deg);
 }
+
 .checkbox__box-mark:after, .checkbox__box-mark:before {
 	content: "";
 	position: absolute;
 	background-color: #fff;
 }
+
 .checkbox__box-mark:before {
 	height: 0;
 	width: 2px;
 	transition: all 0.15s ease-out 0.15s;
 }
+
 .checkbox__box-mark:after {
 	top: 5px;
 	height: 2px;
 	width: 0;
 	transition: all 0.15s ease-out;
 }
+
 .checkbox__text {
 	padding-top: 2px;
 	font-size: 14px;
