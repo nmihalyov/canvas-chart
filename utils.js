@@ -17,19 +17,24 @@ const VIEW = {
 const THEME = {
   GRID_LINES: {
     WIDTH: 1,
-    COLOR: '#CCCCCC'
+    COLOR_LIGHT: '#F2F4F5',
+    COLOR_DARK: '#303E50'
   },
 	POINT_LINE: {
 		WIDTH: 2,
-		COLOR: '#DDDDDD'	
+		COLOR_LIGHT: '#DFE6EB',
+		COLOR_DARK: '#3B4A5A'
 	},
   TICKS: {
     FONT: 'normal 20px Roboto, Helvetica, sans-serif',
-    FILL: '#96A2AA'
+    FILL_LIGHT: '#96A2AA',
+    FILL_DARK: '#546778'
   },
   LINE_WIDTH: 4,
 	POINT: {
-		RADIUS: 6
+		RADIUS: 8,
+		FILL_LIGHT: '#FFFFFF',
+		FILL_DARK: '#242F3E'
 	}
 };
 const SLIDER = {

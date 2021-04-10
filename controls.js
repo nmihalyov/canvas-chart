@@ -2,6 +2,15 @@
 const chartControls = data => {
 	let callbackFn; // callback function
 	const controls = {}; // initial controls state
+	const theme = document.querySelector('.theme'); // theme toggle button
+
+	// Theme button click event handler
+	theme.addEventListener('click', () => {
+		// Write new theme value
+		document.body.dataset.theme = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
+		// Calling callback function
+		callbackFn();
+	});
 
 	// Get array of checkboxes elements
 	const checkboxes = data.columns.map(col => {

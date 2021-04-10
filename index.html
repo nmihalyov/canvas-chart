@@ -15,7 +15,7 @@
     <script defer src="chart.js"></script>
     <script defer src="app.js"></script>
   </head>
-  <body>
+  <body data-theme="dark">
 		<div class="chart">
 			<canvas data-chart></canvas>
 			<div class="slider">
@@ -28,7 +28,10 @@
 					<div class="slider__right-arrow" data-el="right"></div>
 				</div>
 			</div>
-			<div class="controls"></div>
+			<div class="controls-wrapper">
+				<div class="controls"></div>
+				<button class="theme">Toggle theme</button>
+			</div>
 			<div class="tooltip" data-tooltip></div>
 		</div>
   </body>
